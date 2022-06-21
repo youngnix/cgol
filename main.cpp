@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include <stdio.h>
+#include <iostream>
 #include <random>
 #include <ctime>
 
@@ -17,6 +17,7 @@ int main(int argc, char** argv){
 
     srand(time(NULL));
 
+    // Set up the intial board
     for(int x = 0; x < MAP_WIDTH; x++){
         for(int y = 0; y < MAP_HEIGHT; y++){
             if(rand() % 1){
@@ -25,8 +26,8 @@ int main(int argc, char** argv){
         }
     }
 
-    if(SDL_Init(SDL_INIT_EVERYTHING) != 0){
-        printf("SDL2 couldn't start");
+    if(SDL_Init(SDL_INIT_VIDEO) != 0){
+        std::cout << "SDL couldn't start" << std::endl;
     }
 
     SDL_Window* window = SDL_CreateWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
@@ -43,9 +44,11 @@ int main(int argc, char** argv){
             }
         }
 
+        // Check every cell on the board 
         for(int x = 0; x < MAP_WIDTH; x++){            
             for(int y = 0; y < MAP_HEIGHT; y++){
                 unsigned char surroundingCells = 0;
+                // Check 8 surrounding cells
                 for(int xx = -1; xx <= 1; xx++){
                     for(int yy = -1; yy <= 1; yy++){
                         if(xx == 0 && yy == 0) continue;
@@ -53,10 +56,10 @@ int main(int argc, char** argv){
                     }
                 }
                 secondPointer[x][y] = firstPointer[x][y] ? (surroundingCells >= 2 && surroundingCells < 4) : (surroundingCells == 3);
-                SDL_RenderDrawLine(renderer, x, y, x * 2, y * 2);
             }
         }
 
+        // Swap arrays (double-buffering)
         int (*tempPointer)[MAP_HEIGHT] = firstPointer;
         firstPointer = secondPointer;
         secondPointer = tempPointer;
