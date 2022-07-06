@@ -2,39 +2,39 @@
 #include <iostream>
 #include <random>
 #include <ctime>
-
-#define MAP_WIDTH 48
-#define MAP_HEIGHT 48
+#include <stdio.h>
+#include <typeinfo>
 
 int main(int argc, char** argv){
-    unsigned char shouldClose = 0;
-
-    int firstBoard[MAP_WIDTH][MAP_HEIGHT];
-    int secondBoard[MAP_WIDTH][MAP_HEIGHT];
-
-    int (*firstPointer)[MAP_HEIGHT] = firstBoard;
-    int (*secondPointer)[MAP_HEIGHT] = secondBoard;
-
     srand(time(NULL));
-
-    // Set up the intial board
-    for(int x = 0; x < MAP_WIDTH; x++){
-        for(int y = 0; y < MAP_HEIGHT; y++){
-            if(rand() % 1){
-                firstPointer[x][y] = 1;
-            }
-        }
-    }
-
-    if(SDL_Init(SDL_INIT_VIDEO) != 0){
+    
+    if(SDL_Init(SDL_INIT_EVERYTHING) != 0){
         std::cout << "SDL couldn't start" << std::endl;
     }
 
     SDL_Window* window = SDL_CreateWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
-    SDL_RenderSetLogicalSize(renderer, MAP_WIDTH, MAP_HEIGHT);
+    SDL_Surface* boardSurface = SDL_LoadBMP("res\\board.bmp");
 
+    const unsigned int mapWidth = (unsigned int)boardSurface->w;
+    const unsigned int mapHeight = (unsigned int)boardSurface->h;
+
+    unsigned char firstBoard[mapWidth][mapHeight];
+    unsigned char secondBoard[mapWidth][mapHeight];
+
+    unsigned char (*firstPointer)[mapHeight] = firstBoard;
+    unsigned char (*secondPointer)[mapHeight] = secondBoard;
+
+    for(int i = 0; i <= mapHeight; i++){
+        for(int j = 0; j <= mapWidth; j++){
+            break;
+        }
+    }
+
+    SDL_RenderSetLogicalSize(renderer, mapWidth, mapHeight);
+
+    bool shouldClose = 0;
     while(!shouldClose){
         SDL_Event event;
         while(SDL_PollEvent(&event)){
@@ -45,32 +45,33 @@ int main(int argc, char** argv){
         }
 
         // Check every cell on the board 
-        for(int x = 0; x < MAP_WIDTH; x++){            
-            for(int y = 0; y < MAP_HEIGHT; y++){
+        for(int i = 0; i < mapHeight; i++){            
+            for(int j = 0; j < mapWidth; j++){
                 unsigned char surroundingCells = 0;
                 // Check 8 surrounding cells
-                for(int xx = -1; xx <= 1; xx++){
-                    for(int yy = -1; yy <= 1; yy++){
-                        if(xx == 0 && yy == 0) continue;
-                        if(firstPointer[(xx + x) % MAP_WIDTH][(yy + y) % MAP_HEIGHT]) surroundingCells++;
+                for(int ii = -1; ii <= 1; ii++){
+                    for(int jj = -1; jj <= 1; jj++){
+                        if(jj == 0 && ii == 0) continue;
+                        if(firstPointer[(ii + i) % mapHeight][(jj + j) % mapWidth]) surroundingCells++;
                     }
                 }
-                secondPointer[x][y] = firstPointer[x][y] ? (surroundingCells >= 2 && surroundingCells < 4) : (surroundingCells == 3);
+                secondPointer[i][j] = firstPointer[i][j] ? (surroundingCells >= 2 && surroundingCells < 4) : (surroundingCells == 3);
             }
         }
 
         // Swap arrays (double-buffering)
-        int (*tempPointer)[MAP_HEIGHT] = firstPointer;
+        unsigned char (*tempPointer)[mapHeight] = firstPointer;
         firstPointer = secondPointer;
         secondPointer = tempPointer;
 
         SDL_RenderClear(renderer);
 
+        // Draw points
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        for(int x = 0; x < MAP_WIDTH; x++){
-            for(int y = 0; y < MAP_HEIGHT; y++){
-                if(firstPointer[x][y]){
-                    SDL_RenderDrawPoint(renderer, x, y);
+        for(int i = 0; i < mapHeight; i++){
+            for(int j = 0; j < mapWidth; j++){
+                if(firstPointer[i][j]){
+                    SDL_RenderDrawPoint(renderer, j, i);
                 }
             }
         }
