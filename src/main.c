@@ -15,6 +15,7 @@ int main(int argc, char** argv){
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
     SDL_Surface* boardSurface = SDL_LoadBMP("res\\board.bmp");
+    SDL_LockSurface(boardSurface);
 
     const unsigned int MAP_WIDTH = boardSurface->w;
     const unsigned int MAP_HEIGHT = boardSurface->h;
@@ -22,12 +23,9 @@ int main(int argc, char** argv){
     unsigned char firstBoard[MAP_WIDTH][MAP_HEIGHT];
     unsigned char secondBoard[MAP_WIDTH][MAP_HEIGHT];
 
-    unsigned char (*firstPointer)[MAP_HEIGHT] = firstBoard;
-    unsigned char (*secondPointer)[MAP_HEIGHT] = secondBoard;
-
-    for(int i = 0; i <= MAP_HEIGHT; i++){
-        for(int j = 0; j <= MAP_WIDTH; j++){
-            break;
+    for(int i = 0; i < MAP_HEIGHT; i++){
+        for(int j = 0; j < MAP_WIDTH; j++){
+            firstBoard[i][j] = ((uint8_t*)boardSurface->pixels)[i * MAP_WIDTH + j];
         }
     }
 
@@ -51,25 +49,21 @@ int main(int argc, char** argv){
                 for(int ii = -1; ii <= 1; ii++){
                     for(int jj = -1; jj <= 1; jj++){
                         if(jj == 0 && ii == 0) continue;
-                        if(firstPointer[(ii + i) % MAP_HEIGHT][(jj + j) % MAP_WIDTH]) surroundingCells++;
+                        if(firstBoard[(ii + i) % MAP_HEIGHT][(jj + j) % MAP_WIDTH]) surroundingCells++;
                     }
                 }
-                secondPointer[i][j] = firstPointer[i][j] ? (surroundingCells >= 2 && surroundingCells < 4) : (surroundingCells == 3);
+                secondBoard[i][j] = firstBoard[i][j] ? (surroundingCells >= 2 && surroundingCells < 4) : (surroundingCells == 3);
             }
         }
 
-        // Swap arrays (double-buffering)
-        unsigned char (*tempPointer)[MAP_HEIGHT] = firstPointer;
-        firstPointer = secondPointer;
-        secondPointer = tempPointer;
-
+        memcpy(firstBoard, secondBoard, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
         SDL_RenderClear(renderer);
 
         // Draw points
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         for(int i = 0; i < MAP_HEIGHT; i++){
             for(int j = 0; j < MAP_WIDTH; j++){
-                if(firstPointer[i][j]){
+                if(firstBoard[i][j]){
                     SDL_RenderDrawPoint(renderer, j, i);
                 }
             }
@@ -78,8 +72,11 @@ int main(int argc, char** argv){
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderPresent(renderer);
 
-        SDL_Delay(1000 / 30);
+        SDL_Delay(1000 / 10);
     }
+
+    SDL_UnlockSurface(boardSurface);
+    SDL_FreeSurface(boardSurface);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
