@@ -25,7 +25,7 @@ int main(int argc, char** argv){
 
     for(int i = 0; i < MAP_HEIGHT; i++){
         for(int j = 0; j < MAP_WIDTH; j++){
-            firstBoard[i][j] = ((uint8_t*)boardSurface->pixels)[i * MAP_WIDTH + j];
+            firstBoard[i][j] = ((unsigned char*)boardSurface->pixels)[i * MAP_WIDTH + j];
         }
     }
 
