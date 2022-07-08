@@ -1,21 +1,15 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <stdbool.h>
 #include <SDL2/SDL.h>
 
 int main(int argc, char** argv){
-    srand(time(NULL));
-    
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0){
         printf("Shit happens. SDL error: %s\n", SDL_GetError());
     }
 
-    SDL_Window* window = SDL_CreateWindow("Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
+    SDL_Window* window = SDL_CreateWindow("C's Game of Life", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
     SDL_Surface* boardSurface = SDL_LoadBMP("res\\board.bmp");
-    SDL_LockSurface(boardSurface);
 
     const unsigned int MAP_WIDTH = boardSurface->w;
     const unsigned int MAP_HEIGHT = boardSurface->h;
@@ -31,7 +25,7 @@ int main(int argc, char** argv){
 
     SDL_RenderSetLogicalSize(renderer, MAP_WIDTH, MAP_HEIGHT);
 
-    bool shouldClose = 0;
+    unsigned char shouldClose = 0;
     while(!shouldClose){
         SDL_Event event;
         while(SDL_PollEvent(&event)){
@@ -57,6 +51,7 @@ int main(int argc, char** argv){
         }
 
         memcpy(firstBoard, secondBoard, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
+
         SDL_RenderClear(renderer);
 
         // Draw points
@@ -75,7 +70,6 @@ int main(int argc, char** argv){
         SDL_Delay(1000 / 10);
     }
 
-    SDL_UnlockSurface(boardSurface);
     SDL_FreeSurface(boardSurface);
 
     SDL_DestroyRenderer(renderer);
