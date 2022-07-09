@@ -19,12 +19,11 @@ int main(int argc, char** argv){
 
     for(int i = 0; i < MAP_HEIGHT; i++){
         for(int j = 0; j < MAP_WIDTH; j++){
-            secondBoard[i][j] = ((unsigned char*)boardSurface->pixels)[(i * MAP_WIDTH) + j];
+            firstBoard[i][j] = ((unsigned char*)boardSurface->pixels)[(i * MAP_WIDTH) + j];
         }
     }
-    memcpy(firstBoard, secondBoard, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
 
-    SDL_RenderSetLogicalSize(renderer, 320, 180);
+    SDL_RenderSetLogicalSize(renderer, MAP_WIDTH, MAP_HEIGHT);
 
     unsigned char shouldClose = 0;
     while(!shouldClose){
