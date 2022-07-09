@@ -24,7 +24,7 @@ int main(int argc, char** argv){
     }
     memcpy(firstBoard, secondBoard, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
 
-    SDL_RenderSetLogicalSize(renderer, MAP_WIDTH, MAP_HEIGHT);
+    SDL_RenderSetLogicalSize(renderer, 320, 180);
 
     unsigned char shouldClose = 0;
     while(!shouldClose){
@@ -54,10 +54,12 @@ int main(int argc, char** argv){
             for(int j = 0; j < MAP_WIDTH; j++){
                 unsigned char surroundingCells = 0;
                 // Check 8 surrounding cells
-                for(int ii = -1; ii <= 1; ii++){
-                    for(int jj = -1; jj <= 1; jj++){
-                        if(jj == 0 && ii == 0) continue;
-                        if(firstBoard[(ii + i) % MAP_HEIGHT][(jj + j) % MAP_WIDTH]) surroundingCells++;
+                for(int ii = i - 1; ii <= i + 1; ii++){
+                    for(int jj = j - 1; jj <= j + 1; jj++){
+                        if(jj < 0 || jj >= MAP_WIDTH) continue;
+                        if(ii < 0 || ii >= MAP_HEIGHT) continue;
+                        if(jj == j && ii == i) continue;
+                        if(firstBoard[ii][jj]) surroundingCells++;
                     }
                 }
                 secondBoard[i][j] = firstBoard[i][j] ? (surroundingCells >= 2 && surroundingCells < 4) : (surroundingCells == 3);
@@ -81,7 +83,7 @@ int main(int argc, char** argv){
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderPresent(renderer);
 
-        SDL_Delay(1000 / 60);
+        SDL_Delay(1000 / 30);
     }
     SDL_FreeSurface(boardSurface);
 
