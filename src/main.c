@@ -19,9 +19,10 @@ int main(int argc, char** argv){
 
     for(int i = 0; i < MAP_HEIGHT; i++){
         for(int j = 0; j < MAP_WIDTH; j++){
-            firstBoard[i][j] = ((unsigned char*)boardSurface->pixels)[i * MAP_WIDTH + j];
+            secondBoard[i][j] = ((unsigned char*)boardSurface->pixels)[(i * MAP_WIDTH) + j];
         }
     }
+    memcpy(firstBoard, secondBoard, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
 
     SDL_RenderSetLogicalSize(renderer, MAP_WIDTH, MAP_HEIGHT);
 
@@ -32,6 +33,19 @@ int main(int argc, char** argv){
             switch(event.type){
                 case SDL_QUIT:
                     shouldClose = 1;
+                    break;
+                case SDL_KEYDOWN:
+                    if(event.key.keysym.scancode == SDL_SCANCODE_SPACE){
+                        SDL_LockSurface(boardSurface);
+                        for(int i = 0; i < MAP_HEIGHT; i++){
+                            for(int j = 0; j < MAP_WIDTH; j++){
+                                ((unsigned char*)boardSurface->pixels)[(i * MAP_WIDTH) + j] = firstBoard[i][j];
+                            }
+                        }
+                        SDL_SaveBMP(boardSurface, "res\\boardSave.bmp");
+                        SDL_UnlockSurface(boardSurface);
+                    }
+                    break;
             }
         }
 
@@ -67,9 +81,8 @@ int main(int argc, char** argv){
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderPresent(renderer);
 
-        SDL_Delay(1000 / 10);
+        SDL_Delay(1000 / 60);
     }
-
     SDL_FreeSurface(boardSurface);
 
     SDL_DestroyRenderer(renderer);
