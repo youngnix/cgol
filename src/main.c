@@ -14,8 +14,8 @@ int main(int argc, char** argv){
     const unsigned int MAP_WIDTH = boardSurface->w;
     const unsigned int MAP_HEIGHT = boardSurface->h;
 
-    unsigned char firstBoard[MAP_WIDTH][MAP_HEIGHT];
-    unsigned char secondBoard[MAP_WIDTH][MAP_HEIGHT];
+    unsigned char firstBoard[MAP_HEIGHT][MAP_WIDTH];
+    unsigned char secondBoard[MAP_HEIGHT][MAP_WIDTH];
 
     for(int i = 0; i < MAP_HEIGHT; i++){
         for(int j = 0; j < MAP_WIDTH; j++){
