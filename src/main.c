@@ -12,25 +12,19 @@ int main(int argc, char** argv){
     SDL_Window* window = SDL_CreateWindow("C's Game of Life", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    SDL_Surface* bitmapLoad = SDL_LoadBMP("res/board.bmp");
-    SDL_Surface* bitmapSave = bitmapLoad;
+    SDL_Surface* bitmapImage = SDL_LoadBMP("res/board.bmp");
 
-    SDL_Rect mapViewport = {
-        .w = bitmapLoad->w * 4,
-        .h = bitmapLoad->h * 4,
-        .x = 0,
-        .y = 0,
-    };
+    if(bitmapImage == NULL){
+        printf("Couldn't load bitmap. SDL error: %s\n", SDL_GetError());
+    }
 
-    SDL_RenderSetViewport(renderer, &mapViewport);
-
-    const unsigned int MAP_WIDTH = bitmapLoad->w;
-    const unsigned int MAP_HEIGHT = bitmapLoad->h;
+    const unsigned int MAP_WIDTH = bitmapImage->w;
+    const unsigned int MAP_HEIGHT = bitmapImage->h;
 
     unsigned char frontBuffer[MAP_HEIGHT][MAP_WIDTH];
     unsigned char backBuffer[MAP_HEIGHT][MAP_WIDTH];
 
-    memcpy(frontBuffer, bitmapLoad->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+    memcpy(frontBuffer, bitmapImage->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
 
     unsigned char drawGrid = 1;
     unsigned char boardPaused = 0;
@@ -70,21 +64,21 @@ int main(int argc, char** argv){
         }
 
         if(isKeyJustPressed(SDL_SCANCODE_S)){
-            SDL_LockSurface(bitmapSave);
-            memcpy(bitmapSave->pixels, frontBuffer, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
-            SDL_SaveBMP(bitmapSave, "res/boardSave.bmp");
-            SDL_UnlockSurface(bitmapSave);
+            SDL_LockSurface(bitmapImage);
+            memcpy(bitmapImage->pixels, frontBuffer, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+            SDL_SaveBMP(bitmapImage, "res/boardSave.bmp");
+            SDL_UnlockSurface(bitmapImage);
         }
         
         if(isKeyPressed(SDL_SCANCODE_LSHIFT)){
             if(isKeyJustPressed(SDL_SCANCODE_R)){
-                bitmapLoad = SDL_LoadBMP("res/boardSave.bmp");
-                memcpy(frontBuffer, bitmapLoad->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+                bitmapImage = SDL_LoadBMP("res/boardSave.bmp");
+                memcpy(frontBuffer, bitmapImage->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
             }
         } else {
             if(isKeyJustPressed(SDL_SCANCODE_R)){
-                bitmapLoad = SDL_LoadBMP("res/board.bmp");
-                memcpy(frontBuffer, bitmapLoad->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+                bitmapImage = SDL_LoadBMP("res/board.bmp");
+                memcpy(frontBuffer, bitmapImage->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
             }
         }
 
@@ -96,6 +90,7 @@ int main(int argc, char** argv){
             drawGrid = !drawGrid;
         }
 
+        // If the board isn't paused, run the simulation
         if(!boardPaused){
             // Check every cell on the board 
             for(int i = 0; i < MAP_HEIGHT; i++){            
@@ -113,6 +108,7 @@ int main(int argc, char** argv){
                     backBuffer[i][j] = frontBuffer[i][j] ? (cellCount >= 2 && cellCount < 4) : (cellCount == 3);
                 }
             }
+            // Copy the back buffer to the front buffer
             memcpy(frontBuffer, backBuffer, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));   
         }
 
@@ -129,17 +125,16 @@ int main(int argc, char** argv){
 
         SDL_RenderClear(renderer);
 
-        // Draw points
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 128);
+        // Draw cells
         for(int i = 0; i < MAP_HEIGHT; i++){
             for(int j = 0; j < MAP_WIDTH; j++){
-                SDL_Rect cellRect = {
-                    j * 8, i * 8, 8, 8
-                };
+                SDL_Rect cellRect = { j * 8, i * 8, 8, 8 };
                 if(frontBuffer[i][j]) SDL_RenderFillRect(renderer, &cellRect);
             }
         }
 
+        // If drawGrid is true, draw the grid
         if(drawGrid){
             SDL_SetRenderDrawColor(renderer, 64, 64, 64, 64);
 
@@ -154,8 +149,7 @@ int main(int argc, char** argv){
         SDL_RenderPresent(renderer);
     }
 
-    SDL_FreeSurface(bitmapSave);
-    SDL_FreeSurface(bitmapLoad);
+    SDL_FreeSurface(bitmapImage);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
