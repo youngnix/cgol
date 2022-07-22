@@ -1,6 +1,3 @@
-#include "../include/input.h"
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_timer.h>
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
@@ -29,29 +26,30 @@ int main(int argc, char** argv){
     unsigned char drawGrid = 1;
     unsigned char boardPaused = 0;
 
+    SDL_Point mousePosition;
+    unsigned char pressedButtons[4];
+    unsigned char pressedKeys[512];
+
     unsigned char shouldClose = 0;
     while(!shouldClose){
-        clearInput();
-
+        memset(pressedKeys, 0, sizeof(pressedKeys));
         SDL_Event event;
         while(SDL_PollEvent(&event)){
             switch(event.type){
                 case SDL_KEYDOWN:
                     if(!event.key.repeat){
-                        eventKeyDown(event);
+                        pressedKeys[event.key.keysym.scancode] = 1;
                     }
                     break;
-                case SDL_KEYUP:
-                    eventKeyUp(event);
-                    break;
-                case SDL_MOUSEMOTION:
-                    eventMotion(event);
-                    break;
                 case SDL_MOUSEBUTTONDOWN:
-                    eventButtonDown(event);
+                    pressedButtons[event.button.button] = 1;
                     break;
                 case SDL_MOUSEBUTTONUP:
-                    eventButtonUp(event);
+                    pressedButtons[event.button.button] = 0;
+                    break;
+                case SDL_MOUSEMOTION:
+                    mousePosition.x = event.motion.x;
+                    mousePosition.y = event.motion.y;
                     break;
                 case SDL_QUIT:
                     shouldClose = 1;
@@ -59,34 +57,37 @@ int main(int argc, char** argv){
             }
         }
 
-        if(isKeyJustPressed(SDL_SCANCODE_C)){
+        if(pressedKeys[SDL_SCANCODE_C]){
             memset(frontBuffer, 0, sizeof(frontBuffer));
         }
 
-        if(isKeyJustPressed(SDL_SCANCODE_S)){
+        if(pressedKeys[SDL_SCANCODE_S]){
             SDL_LockSurface(bitmapImage);
             memcpy(bitmapImage->pixels, frontBuffer, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
             SDL_SaveBMP(bitmapImage, "res/boardSave.bmp");
             SDL_UnlockSurface(bitmapImage);
         }
         
-        if(isKeyPressed(SDL_SCANCODE_LSHIFT)){
-            if(isKeyJustPressed(SDL_SCANCODE_R)){
+        if(pressedKeys[SDL_SCANCODE_R]){
+            if(pressedKeys[SDL_SCANCODE_LSHIFT]){
                 bitmapImage = SDL_LoadBMP("res/boardSave.bmp");
-                memcpy(frontBuffer, bitmapImage->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+                if(bitmapImage != NULL){
+                    memcpy(frontBuffer, bitmapImage->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+                }
             }
-        } else {
-            if(isKeyJustPressed(SDL_SCANCODE_R)){
+            else {
                 bitmapImage = SDL_LoadBMP("res/board.bmp");
-                memcpy(frontBuffer, bitmapImage->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+                if(bitmapImage != NULL){
+                    memcpy(frontBuffer, bitmapImage->pixels, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));
+                }
             }
         }
 
-        if(isKeyJustPressed(SDL_SCANCODE_SPACE)){
+        if(pressedKeys[SDL_SCANCODE_SPACE]){
             boardPaused = !boardPaused;
         }
 
-        if(isKeyJustPressed(SDL_SCANCODE_G)){
+        if(pressedKeys[SDL_SCANCODE_G]){
             drawGrid = !drawGrid;
         }
 
@@ -112,14 +113,14 @@ int main(int argc, char** argv){
             memcpy(frontBuffer, backBuffer, MAP_HEIGHT * MAP_WIDTH * sizeof(unsigned char));   
         }
 
-        if((getMousePosition()->x < MAP_WIDTH * 8 && getMousePosition()->x > 0)
-        && (getMousePosition()->y < MAP_HEIGHT * 8 && getMousePosition()->y > 0)){
-            if(isButtonPressed(SDL_BUTTON_LEFT)){
-                frontBuffer[getMousePosition()->y / 8][getMousePosition()->x / 8] = 1;
+        if((mousePosition.x < MAP_WIDTH * 8 && mousePosition.x > 0)
+        && (mousePosition.y < MAP_HEIGHT * 8 && mousePosition.y > 0)){
+            if(pressedButtons[SDL_BUTTON_LEFT]){
+                frontBuffer[mousePosition.y / 8][mousePosition.x / 8] = 1;
             }
 
-            if(isButtonPressed(SDL_BUTTON_RIGHT)){
-                frontBuffer[getMousePosition()->y / 8][getMousePosition()->x / 8] = 0;
+            if(pressedButtons[SDL_BUTTON_RIGHT]){
+                frontBuffer[mousePosition.y / 8][mousePosition.x / 8] = 0;
             }
         }
 
